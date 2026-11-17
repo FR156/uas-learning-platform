@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: Typecheck, validate content, build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Validate content (KaTeX + exercise integrity)
+        run: npm run verify:content
+
+      - name: Production build
+        run: npm run build
+
+      - name: Confirm build output is static and self-contained
+        run: |
+          test -f dist/index.html
+          # No server-side runtime may be required at deploy time.
+          if grep -rqE "__SERVER__|process\.env" dist/index.html; then
+            echo "Unexpected server runtime reference in dist/index.html"; exit 1
+          fi
+          echo "Build output OK: $(du -sh dist | cut -f1)"

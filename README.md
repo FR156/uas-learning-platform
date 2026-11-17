@@ -466,6 +466,33 @@ All content parsed and validated: OK
 Run it before every commit that touches `src/content/`. The production build
 does **not** run it automatically — `tsc` catches type errors, not bad LaTeX.
 
+### Continuous integration
+
+`.github/workflows/ci.yml` runs on every push and pull request to `main`:
+
+1. `npm ci` — installs from the lockfile
+2. `npm run typecheck`
+3. `npm run verify:content`
+4. `npm run build`
+5. Asserts `dist/index.html` exists and contains no server-runtime references
+
+All five steps were run locally against a fresh clone of this repository and
+pass, so CI is expected to be green on first push.
+
+---
+
+## Repository notes
+
+- **What is committed:** source, content data, scripts, config, README,
+  `CONTENT_INVENTORY.md`, `LICENSE`, and the lockfile — 62 files, ~657 KB.
+- **What is not committed:** `node_modules/`, `dist/`, `*.tsbuildinfo`, and
+  `source-extraction/`. The last one holds verbatim copies of the course
+  material (148 rendered page images plus extracted prose, ~31 MB) and is
+  deliberately excluded; nothing under `src/` reads from it.
+- **No secrets.** The app is fully static with no environment variables,
+  API keys, or credentials. `.env.example` exists only to make that explicit.
+- **No original PDFs** are included in the repository.
+
 ---
 
 ## Known limitations
